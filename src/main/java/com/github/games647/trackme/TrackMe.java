@@ -13,16 +13,16 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
+import org.spongepowered.api.command.CommandManager;
+import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.service.command.CommandService;
-import org.spongepowered.api.service.config.DefaultConfig;
 import org.spongepowered.api.text.Texts;
-import org.spongepowered.api.util.command.args.GenericArguments;
-import org.spongepowered.api.util.command.spec.CommandSpec;
 
 @Plugin(id = "trackme", name = "TrackMe", version = "0.1")
 public class TrackMe {
@@ -64,9 +64,10 @@ public class TrackMe {
         initEvent.getGame().getEventManager().registerListeners(this, new PlayerListener(this));
 
         //register commands
-        CommandService commandDispatcher = initEvent.getGame().getCommandDispatcher();
+        CommandManager commandDispatcher = initEvent.getGame().getCommandManager();
         CommandSpec statsCommand = CommandSpec.builder()
                 .executor(new StatsCommand(this))
+                .permission(pluginContainer.getId() + ".command.stats")
                 .arguments(GenericArguments
                         .onlyOne(GenericArguments
                                 .playerOrSource(Texts.of("target"), game)))
