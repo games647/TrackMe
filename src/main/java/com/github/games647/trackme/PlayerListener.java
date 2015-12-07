@@ -18,7 +18,7 @@ public class PlayerListener {
         this.plugin = plugin;
     }
 
-    @Listener(ignoreCancelled = true)
+    @Listener
     public void onEntityDeath(DestructEntityEvent.Death destructEntityEvent) {
         Living targetEntity = destructEntityEvent.getTargetEntity();
         if (targetEntity instanceof Player) {
