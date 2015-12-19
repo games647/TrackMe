@@ -24,7 +24,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Texts;
 
-@Plugin(id = "trackme", name = "TrackMe", version = "0.1")
+@Plugin(id = "trackme", name = "TrackMe", version = "0.1.1")
 public class TrackMe {
 
     private final PluginContainer pluginContainer;
@@ -61,16 +61,16 @@ public class TrackMe {
     @Listener
     public void onInit(GameInitializationEvent initEvent) {
         //register events
-        initEvent.getGame().getEventManager().registerListeners(this, new PlayerListener(this));
+        game.getEventManager().registerListeners(this, new PlayerListener(this));
 
         //register commands
-        CommandManager commandDispatcher = initEvent.getGame().getCommandManager();
+        CommandManager commandDispatcher = game.getCommandManager();
         CommandSpec statsCommand = CommandSpec.builder()
                 .executor(new StatsCommand(this))
                 .permission(pluginContainer.getId() + ".command.stats")
                 .arguments(GenericArguments
                         .onlyOne(GenericArguments
-                                .playerOrSource(Texts.of("target"), game)))
+                                .playerOrSource(Texts.of("target"))))
                 .build();
         commandDispatcher.register(this, statsCommand, pluginContainer.getId(), "stats");
     }
