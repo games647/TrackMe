@@ -22,9 +22,9 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
-import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.Text;
 
-@Plugin(id = "trackme", name = "TrackMe", version = "0.1.1")
+@Plugin(id = "trackme", name = "TrackMe", version = "0.2")
 public class TrackMe {
 
     private final PluginContainer pluginContainer;
@@ -70,7 +70,7 @@ public class TrackMe {
                 .permission(pluginContainer.getId() + ".command.stats")
                 .arguments(GenericArguments
                         .onlyOne(GenericArguments
-                                .playerOrSource(Texts.of("target"))))
+                                .playerOrSource(Text.of("target"))))
                 .build();
         commandDispatcher.register(this, statsCommand, pluginContainer.getId(), "stats");
     }
