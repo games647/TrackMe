@@ -21,8 +21,7 @@ public class Settings {
     private ObjectMapper<Config>.BoundInstance configMapper;
     private CommentedConfigurationNode rootNode;
 
-    public Settings(ConfigurationLoader<CommentedConfigurationNode> configManager
-            , File defaultConfigFile, TrackMe plugin) {
+    public Settings(ConfigurationLoader<CommentedConfigurationNode> configManager, File defaultConfigFile, TrackMe plugin) {
         this.configManager = configManager;
         this.plugin = plugin;
         this.defaultConfigFile = defaultConfigFile;
@@ -83,5 +82,9 @@ public class Settings {
         }
 
         return configMapper.getInstance();
+    }
+
+    public File getConfigDir() {
+        return defaultConfigFile.getParentFile();
     }
 }

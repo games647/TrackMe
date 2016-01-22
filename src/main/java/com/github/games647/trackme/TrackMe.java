@@ -1,5 +1,7 @@
 package com.github.games647.trackme;
 
+import com.github.games647.trackme.listener.ConnectionListener;
+import com.github.games647.trackme.listener.PlayerListener;
 import com.github.games647.trackme.config.Settings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -32,16 +34,17 @@ public class TrackMe {
     private final Game game;
 
     @Inject
-    @DefaultConfig(sharedRoot = true)
+    @DefaultConfig(sharedRoot = false)
     private File defaultConfigFile;
 
     @Inject
-    @DefaultConfig(sharedRoot = true)
+    @DefaultConfig(sharedRoot = false)
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
 
     private Settings configuration;
+    private DatabaseManager databaseManager;
 
-    private final Map<UUID, PlayerStats> playerStats = Maps.newHashMap();
+    private final Map<UUID, PlayerStats> playerStats = Maps.newConcurrentMap();
 
     @Inject
     public TrackMe(Logger logger, PluginContainer pluginContainer, Game game) {
@@ -52,15 +55,17 @@ public class TrackMe {
 
     @Listener
     public void onPreInit(GamePreInitializationEvent preInitEvent) {
-        logger.info("Loading {} v{}", pluginContainer.getName(), pluginContainer.getVersion());
-
         configuration = new Settings(configManager, defaultConfigFile, this);
         configuration.load();
+
+        databaseManager = new DatabaseManager(this);
+        databaseManager.setupDatabase();
     }
 
     @Listener
     public void onInit(GameInitializationEvent initEvent) {
         //register events
+        game.getEventManager().registerListeners(this, new ConnectionListener(this));
         game.getEventManager().registerListeners(this, new PlayerListener(this));
 
         //register commands
@@ -91,7 +96,11 @@ public class TrackMe {
         return game;
     }
 
-    public Map<UUID, PlayerStats> getPlayerStats() {
+    public Map<UUID, PlayerStats> getCache() {
         return playerStats;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 }
