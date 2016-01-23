@@ -68,12 +68,6 @@
         </plugins>
 
         <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <!--Replace variables-->
-                <filtering>true</filtering>
-            </resource>
-
             <!--Add the license to jar in order to see it in the final jar-->
             <resource>
                 <directory>${basedir}</directory>

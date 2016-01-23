@@ -1,6 +1,5 @@
 package com.github.games647.trackme.listener;
 
-import com.github.games647.trackme.StatsSaveTask;
 import com.github.games647.trackme.PlayerStats;
 import com.github.games647.trackme.StatsLoadTask;
 import com.github.games647.trackme.TrackMe;
@@ -40,7 +39,7 @@ public class ConnectionListener {
         if (removedStats != null) {
             plugin.getGame().getScheduler().createTaskBuilder()
                     .async()
-                    .execute(new StatsSaveTask(plugin, removedStats))
+                    .execute(() -> plugin.getDatabaseManager().savePlayer(removedStats))
                     .submit(plugin);
         }
     }

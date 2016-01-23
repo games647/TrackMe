@@ -1,5 +1,7 @@
 package com.github.games647.trackme;
 
+import com.github.games647.trackme.commands.StatsCommand;
+import com.github.games647.trackme.commands.TopCommand;
 import com.github.games647.trackme.listener.ConnectionListener;
 import com.github.games647.trackme.listener.PlayerListener;
 import com.github.games647.trackme.config.Settings;
@@ -77,7 +79,16 @@ public class TrackMe {
                         .onlyOne(GenericArguments
                                 .playerOrSource(Text.of("target"))))
                 .build();
-        commandDispatcher.register(this, statsCommand, pluginContainer.getId(), "stats");
+        commandDispatcher.register(this, statsCommand, pluginContainer.getId(), "stats", "pvpstats");
+
+        CommandSpec topCommand = CommandSpec.builder()
+                .executor(new TopCommand(this))
+                .permission(pluginContainer.getId() + ".command.top")
+                .arguments(GenericArguments
+                        .optional(GenericArguments
+                                .integer(Text.of("page")), 1))
+                .build();
+        commandDispatcher.register(this, topCommand, "top", "topstats");
     }
 
     public Settings getConfigManager() {

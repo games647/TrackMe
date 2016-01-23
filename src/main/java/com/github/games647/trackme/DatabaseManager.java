@@ -2,6 +2,7 @@ package com.github.games647.trackme;
 
 import com.github.games647.trackme.config.SQLConfiguration;
 import com.github.games647.trackme.config.SQLType;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
 
@@ -11,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.UUID;
 
 import org.spongepowered.api.service.sql.SqlService;
@@ -121,6 +123,32 @@ public class DatabaseManager {
         } finally {
             closeQuietly(conn);
         }
+    }
+
+    public List<PlayerStats> getTopEntries(int page) {
+        List<PlayerStats> result = Lists.newArrayList();
+
+        int startIndex = (page - 1) * 10;
+
+        Connection conn = null;
+        try {
+            conn = getConnection();
+
+            Statement statement = conn.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + STATS_TABLE
+                    + " ORDER BY PlayerKills DESC"
+                    + " LIMIT " + startIndex + ", 10");
+
+            while (resultSet.next()) {
+                result.add(new PlayerStats(resultSet));
+            }
+        } catch (SQLException sqlEx) {
+            plugin.getLogger().error("Error loading stats", sqlEx);
+        } finally {
+            closeQuietly(conn);
+        }
+
+        return result;
     }
 
     public PlayerStats loadPlayer(String playerName) {
