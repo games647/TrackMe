@@ -11,6 +11,7 @@ import com.google.inject.Inject;
 import java.io.File;
 import java.util.Map;
 import java.util.UUID;
+import me.flibio.updatifier.Updatifier;
 
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
@@ -28,7 +29,8 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
-@Plugin(id = "trackme", name = "TrackMe", version = "0.2")
+@Updatifier(repoOwner = "games647", repoName = "TrackMe", version = "0.3")
+@Plugin(id = "trackme", name = "TrackMe", version = "0.3")
 public class TrackMe {
 
     private final PluginContainer pluginContainer;
