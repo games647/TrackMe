@@ -30,7 +30,9 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 @Updatifier(repoOwner = "games647", repoName = "TrackMe", version = "0.3")
-@Plugin(id = "trackme", name = "TrackMe", version = "0.3")
+@Plugin(id = "com.github.games647.trackme", name = "TrackMe", version = "0.3"
+        , url = "https://github.com/games647/TrackMe"
+        , description = "A simple Sponge plugin which tracks pvp/pve kills and deaths.")
 public class TrackMe {
 
     private final PluginContainer pluginContainer;
