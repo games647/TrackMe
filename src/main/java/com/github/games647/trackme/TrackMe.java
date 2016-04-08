@@ -78,16 +78,16 @@ public class TrackMe {
         CommandManager commandDispatcher = game.getCommandManager();
         CommandSpec statsCommand = CommandSpec.builder()
                 .executor(new StatsCommand(this))
-                .permission(pluginContainer.getId() + ".command.stats")
+                .permission(pluginContainer.getUnqualifiedId() + ".command.stats")
                 .arguments(GenericArguments
                         .onlyOne(GenericArguments
                                 .playerOrSource(Text.of("target"))))
                 .build();
-        commandDispatcher.register(this, statsCommand, pluginContainer.getId(), "stats", "pvpstats");
+        commandDispatcher.register(this, statsCommand, pluginContainer.getUnqualifiedId(), "stats", "pvpstats");
 
         CommandSpec topCommand = CommandSpec.builder()
                 .executor(new TopCommand(this))
-                .permission(pluginContainer.getId() + ".command.top")
+                .permission(pluginContainer.getUnqualifiedId() + ".command.top")
                 .arguments(GenericArguments
                         .optional(GenericArguments
                                 .integer(Text.of("page")), 1))
