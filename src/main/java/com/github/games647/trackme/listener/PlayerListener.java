@@ -3,7 +3,6 @@ package com.github.games647.trackme.listener;
 import com.github.games647.trackme.PlayerStats;
 import com.github.games647.trackme.TrackMe;
 
-import java.util.Optional;
 
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.Living;
@@ -11,6 +10,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.entity.damage.source.EntityDamageSource;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
+import org.spongepowered.api.event.filter.cause.First;
 
 public class PlayerListener {
 
@@ -21,23 +21,20 @@ public class PlayerListener {
     }
 
     @Listener
-    public void onEntityDeath(DestructEntityEvent.Death destructEntityEvent) {
+    public void onEntityDeath(DestructEntityEvent.Death destructEntityEvent, @First EntityDamageSource damageSource) {
         Living targetEntity = destructEntityEvent.getTargetEntity();
         if (targetEntity instanceof Player) {
             Player targetPlayer = (Player) targetEntity;
             increaseDeaths(targetPlayer);
         }
 
-        Optional<EntityDamageSource> optionalKiller = destructEntityEvent.getCause().first(EntityDamageSource.class);
-        if (optionalKiller.isPresent()) {
-            Entity killerEntity = optionalKiller.get().getSource();
-            if (killerEntity instanceof Player) {
-                Player killerPlayer = (Player) killerEntity;
-                if (targetEntity instanceof Player) {
-                    increasePlayerKills(killerPlayer);
-                } else {
-                    increaseMobKills(killerPlayer);
-                }
+        Entity killerEntity = damageSource.getSource();
+        if (killerEntity instanceof Player) {
+            Player killerPlayer = (Player) killerEntity;
+            if (targetEntity instanceof Player) {
+                increasePlayerKills(killerPlayer);
+            } else {
+                increaseMobKills(killerPlayer);
             }
         }
     }

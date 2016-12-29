@@ -76,22 +76,4 @@ public class PlayerStats {
     public void setDeaths(int deaths) {
         this.deaths = deaths;
     }
-
-    private long parseLeastSignificant(byte[] byteArray) {
-        long value = 0;
-        for (int i = 0; i < byteArray.length; i++) {
-            value += ((long) byteArray[i] & 0xffL) << (8 * i);
-        }
-
-        return value;
-    }
-
-    private long parseMostSignificant(byte[] byteArray) {
-        long value = 0;
-        for (byte aByte : byteArray) {
-            value = (value << 8) + (aByte & 0xff);
-        }
-
-        return value;
-    }
 }

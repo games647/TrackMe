@@ -30,9 +30,9 @@ import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
 @Updatifier(repoOwner = "games647", repoName = "TrackMe", version = "0.3.1")
-@Plugin(id = "trackme", name = "TrackMe", version = "0.3.1"
-        , url = "https://github.com/games647/TrackMe"
-        , description = "A simple Sponge plugin which tracks pvp/pve kills and deaths.")
+@Plugin(id = "trackme", name = "TrackMe", version = "0.3.1",
+         url = "https://github.com/games647/TrackMe",
+         description = "A simple Sponge plugin which tracks pvp/pve kills and deaths.")
 public class TrackMe {
 
     private final PluginContainer pluginContainer;
@@ -78,16 +78,16 @@ public class TrackMe {
         CommandManager commandDispatcher = game.getCommandManager();
         CommandSpec statsCommand = CommandSpec.builder()
                 .executor(new StatsCommand(this))
-                .permission(pluginContainer.getUnqualifiedId() + ".command.stats")
+                .permission(pluginContainer.getId() + ".command.stats")
                 .arguments(GenericArguments
                         .onlyOne(GenericArguments
                                 .playerOrSource(Text.of("target"))))
                 .build();
-        commandDispatcher.register(this, statsCommand, pluginContainer.getUnqualifiedId(), "stats", "pvpstats");
+        commandDispatcher.register(this, statsCommand, pluginContainer.getId(), "stats", "pvpstats");
 
         CommandSpec topCommand = CommandSpec.builder()
                 .executor(new TopCommand(this))
-                .permission(pluginContainer.getUnqualifiedId() + ".command.top")
+                .permission(pluginContainer.getId() + ".command.top")
                 .arguments(GenericArguments
                         .optional(GenericArguments
                                 .integer(Text.of("page")), 1))
