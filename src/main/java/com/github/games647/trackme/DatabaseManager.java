@@ -6,6 +6,8 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
 
+import org.spongepowered.api.service.sql.SqlService;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,8 +16,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
-
-import org.spongepowered.api.service.sql.SqlService;
 
 public class DatabaseManager {
 
@@ -48,7 +48,7 @@ public class DatabaseManager {
         switch (sqlConfig.getType()) {
             case SQLITE:
                 urlBuilder.append(sqlConfig.getPath()
-                        .replace("%DIR%", plugin.getConfigManager().getConfigDir().getAbsolutePath()))
+                        .replace("%DIR%", plugin.getConfigManager().getConfigDir().normalize().toString()))
                         .append(File.separatorChar)
                         .append("database.db");
                 break;
@@ -69,7 +69,7 @@ public class DatabaseManager {
             case H2:
             default:
                 urlBuilder.append(sqlConfig.getPath()
-                        .replace("%DIR%", plugin.getConfigManager().getConfigDir().getAbsolutePath()))
+                        .replace("%DIR%", plugin.getConfigManager().getConfigDir().normalize().toString()))
                         .append(File.separatorChar)
                         .append("database");
                 break;

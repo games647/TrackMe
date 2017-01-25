@@ -1,27 +1,28 @@
 package com.github.games647.trackme.config;
 
 import com.github.games647.trackme.TrackMe;
-
-import java.io.File;
-import java.io.IOException;
-
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMapper;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class Settings {
 
     private final ConfigurationLoader<CommentedConfigurationNode> configManager;
-    private final File defaultConfigFile;
+    private final Path defaultConfigFile;
 
     private final TrackMe plugin;
 
     private ObjectMapper<Config>.BoundInstance configMapper;
     private CommentedConfigurationNode rootNode;
 
-    public Settings(ConfigurationLoader<CommentedConfigurationNode> configManager, File defaultConfigFile, TrackMe plugin) {
+    public Settings(ConfigurationLoader<CommentedConfigurationNode> configManager, Path defaultConfigFile
+            , TrackMe plugin) {
         this.configManager = configManager;
         this.plugin = plugin;
         this.defaultConfigFile = defaultConfigFile;
@@ -34,9 +35,9 @@ public class Settings {
     }
 
     public void load() {
-        if (!defaultConfigFile.exists()) {
+        if (!Files.exists(defaultConfigFile)) {
             try {
-                defaultConfigFile.createNewFile();
+                Files.createFile(defaultConfigFile);
                 rootNode = configManager.createEmptyNode(ConfigurationOptions.defaults());
             } catch (IOException ioExc) {
                 plugin.getLogger().error("Error creating a new config file", ioExc);
@@ -84,7 +85,7 @@ public class Settings {
         return configMapper.getInstance();
     }
 
-    public File getConfigDir() {
-        return defaultConfigFile.getParentFile();
+    public Path getConfigDir() {
+        return defaultConfigFile.getParent();
     }
 }

@@ -2,20 +2,14 @@ package com.github.games647.trackme;
 
 import com.github.games647.trackme.commands.StatsCommand;
 import com.github.games647.trackme.commands.TopCommand;
+import com.github.games647.trackme.config.Settings;
 import com.github.games647.trackme.listener.ConnectionListener;
 import com.github.games647.trackme.listener.PlayerListener;
-import com.github.games647.trackme.config.Settings;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-
-import java.io.File;
-import java.util.Map;
-import java.util.UUID;
 import me.flibio.updatifier.Updatifier;
-
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.command.CommandManager;
@@ -29,6 +23,10 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.UUID;
+
 @Updatifier(repoOwner = "games647", repoName = "TrackMe", version = "0.3.1")
 @Plugin(id = "trackme", name = "TrackMe", version = "0.3.1",
          url = "https://github.com/games647/TrackMe",
@@ -41,7 +39,7 @@ public class TrackMe {
 
     @Inject
     @DefaultConfig(sharedRoot = false)
-    private File defaultConfigFile;
+    private Path defaultConfigFile;
 
     @Inject
     @DefaultConfig(sharedRoot = false)
