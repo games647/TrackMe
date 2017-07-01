@@ -7,9 +7,14 @@ import com.github.games647.trackme.listener.ConnectionListener;
 import com.github.games647.trackme.listener.PlayerListener;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
-import me.flibio.updatifier.Updatifier;
+
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.UUID;
+
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
+
 import org.slf4j.Logger;
 import org.spongepowered.api.Game;
 import org.spongepowered.api.command.CommandManager;
@@ -23,14 +28,8 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.text.Text;
 
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.UUID;
-
-@Updatifier(repoOwner = "games647", repoName = "TrackMe", version = "0.3.1")
-@Plugin(id = "trackme", name = "TrackMe", version = "0.3.1",
-         url = "https://github.com/games647/TrackMe",
-         description = "A simple Sponge plugin which tracks pvp/pve kills and deaths.")
+@Plugin(id = PomData.ARTIFACT_ID, name = PomData.NAME, version = PomData.VERSION
+        , url = PomData.URL, description = PomData.DESCRIPTION)
 public class TrackMe {
 
     private final PluginContainer pluginContainer;

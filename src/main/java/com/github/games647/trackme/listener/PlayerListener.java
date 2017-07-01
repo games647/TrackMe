@@ -3,7 +3,6 @@ package com.github.games647.trackme.listener;
 import com.github.games647.trackme.PlayerStats;
 import com.github.games647.trackme.TrackMe;
 
-
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.Living;
 import org.spongepowered.api.entity.living.player.Player;

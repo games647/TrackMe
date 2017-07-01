@@ -6,8 +6,6 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
 
-import org.spongepowered.api.service.sql.SqlService;
-
 import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,6 +14,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
+
+import org.spongepowered.api.service.sql.SqlService;
 
 public class DatabaseManager {
 

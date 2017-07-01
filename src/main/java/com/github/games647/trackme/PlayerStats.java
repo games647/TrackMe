@@ -1,6 +1,7 @@
 package com.github.games647.trackme;
 
 import com.google.common.primitives.Longs;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
