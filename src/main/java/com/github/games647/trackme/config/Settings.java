@@ -8,25 +8,22 @@ import java.nio.file.Path;
 
 import ninja.leaping.configurate.ConfigurationOptions;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMapper;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 
 public class Settings {
 
-    private final ConfigurationLoader<CommentedConfigurationNode> configManager;
-    private final Path defaultConfigFile;
+    private final Path configFile;
 
     private final TrackMe plugin;
 
     private ObjectMapper<Config>.BoundInstance configMapper;
     private CommentedConfigurationNode rootNode;
 
-    public Settings(ConfigurationLoader<CommentedConfigurationNode> configManager, Path defaultConfigFile
-            , TrackMe plugin) {
-        this.configManager = configManager;
+    public Settings(Path configFile, TrackMe plugin) {
         this.plugin = plugin;
-        this.defaultConfigFile = defaultConfigFile;
+        this.configFile = configFile;
 
         try {
             configMapper = ObjectMapper.forClass(Config.class).bindToNew();
@@ -36,16 +33,16 @@ public class Settings {
     }
 
     public void load() {
-        if (Files.notExists(defaultConfigFile)) {
+        if (Files.notExists(configFile)) {
             try {
-                Files.createFile(defaultConfigFile);
-                rootNode = configManager.createEmptyNode(ConfigurationOptions.defaults());
+                Files.createFile(configFile);
             } catch (IOException ioExc) {
                 plugin.getLogger().error("Error creating a new config file", ioExc);
                 return;
             }
         }
 
+        HoconConfigurationLoader configManager = HoconConfigurationLoader.builder().setPath(configFile).build();
         rootNode = configManager.createEmptyNode(ConfigurationOptions.defaults());
         if (configMapper != null) {
             try {
@@ -69,7 +66,7 @@ public class Settings {
         if (configMapper != null && rootNode != null) {
             try {
                 configMapper.serialize(rootNode);
-                configManager.save(rootNode);
+                HoconConfigurationLoader.builder().setPath(configFile).build().save(rootNode);
             } catch (ObjectMappingException objMappingExc) {
                 plugin.getLogger().error("Error serialize the configuration", objMappingExc);
             } catch (IOException ioExc) {
@@ -87,6 +84,6 @@ public class Settings {
     }
 
     public Path getConfigDir() {
-        return defaultConfigFile.getParent();
+        return configFile.getParent();
     }
 }

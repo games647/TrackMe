@@ -1,7 +1,6 @@
 package com.github.games647.trackme;
 
 import com.github.games647.trackme.config.SQLConfiguration;
-import com.github.games647.trackme.config.SQLType;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import com.google.common.primitives.Longs;
@@ -15,6 +14,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.service.sql.SqlService;
 
 public class DatabaseManager {
@@ -22,10 +22,6 @@ public class DatabaseManager {
     private static final String STATS_TABLE = "playerstats";
 
     private final TrackMe plugin;
-
-    private final String username;
-    private final String password;
-
     private final String jdbcUrl;
     private SqlService sql;
 
@@ -33,14 +29,6 @@ public class DatabaseManager {
         this.plugin = plugin;
 
         SQLConfiguration sqlConfig = plugin.getConfigManager().getConfiguration().getSqlConfiguration();
-        if (sqlConfig.getType() == SQLType.MYSQL) {
-            this.username = sqlConfig.getUsername();
-            this.password = sqlConfig.getPassword();
-        } else {
-            //flat file drivers throw exception if you try to connect with a account
-            this.username = "";
-            this.password = "";
-        }
 
         StringBuilder urlBuilder = new StringBuilder("jdbc:")
                 .append(sqlConfig.getType().name().toLowerCase())
@@ -54,12 +42,12 @@ public class DatabaseManager {
                 break;
             case MYSQL:
                 //jdbc:<engine>://[<username>[:<password>]@]<host>/<database> - copied from sponge doc
-                urlBuilder.append(username);
-                if (!password.isEmpty()) {
-                    urlBuilder.append(':').append(password);
+                urlBuilder.append(sqlConfig.getUsername());
+                if (!sqlConfig.getPassword().isEmpty()) {
+                    urlBuilder.append(':').append(sqlConfig.getPassword());
                 }
 
-                urlBuilder.append(password).append('@')
+                urlBuilder.append(sqlConfig.getUsername()).append('@')
                         .append(sqlConfig.getPath())
                         .append(':')
                         .append(sqlConfig.getPort())
@@ -76,52 +64,33 @@ public class DatabaseManager {
         }
 
         this.jdbcUrl = urlBuilder.toString();
-        this.sql = plugin.getGame().getServiceManager().provideUnchecked(SqlService.class);
+        this.sql = Sponge.getServiceManager().provideUnchecked(SqlService.class);
     }
 
     public Connection getConnection() throws SQLException {
         if (sql == null) {
             //lazy binding
-            sql = plugin.getGame().getServiceManager().provideUnchecked(SqlService.class);
+            sql = Sponge.getServiceManager().provideUnchecked(SqlService.class);
         }
 
         return sql.getDataSource(jdbcUrl).getConnection();
     }
 
     public void setupDatabase() {
-        Connection conn = null;
-        try {
-            conn = getConnection();
-
-            boolean tableExists = false;
-            try {
-                //check if the table already exists
-                Statement statement = conn.createStatement();
-                statement.execute("SELECT 1 FROM " + STATS_TABLE);
-                statement.close();
-
-                tableExists = true;
-            } catch (SQLException sqlEx) {
-                plugin.getLogger().debug("Table doesn't exist", sqlEx);
-            }
-
-            if (!tableExists) {
-                Statement statement = conn.createStatement();
-                statement.execute("CREATE TABLE " + STATS_TABLE + " ( "
-                        + "`UserID` INT UNSIGNED NOT NULL AUTO_INCREMENT , "
-                        + "`UUID` BINARY(16) NOT NULL , "
-                        + "`Username` VARCHAR(32) NOT NULL , "
-                        + "`PlayerKills` INT NOT NULL DEFAULT 0, "
-                        + "`MobKills` INT NOT NULL DEFAULT 0, "
-                        + "`Deaths` INT NOT NULL DEFAULT 0, "
-                        + "PRIMARY KEY (`UserID`) , UNIQUE (`UUID`) "
-                        + ")");
-                statement.close();
-            }
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("CREATE TABLE IF NOT EXISTS " + STATS_TABLE + " ( "
+                    + "`UserID` INT UNSIGNED NOT NULL AUTO_INCREMENT , "
+                    + "`UUID` BINARY(16) NOT NULL , "
+                    + "`Username` VARCHAR(32) NOT NULL , "
+                    + "`PlayerKills` INT NOT NULL DEFAULT 0, "
+                    + "`MobKills` INT NOT NULL DEFAULT 0, "
+                    + "`Deaths` INT NOT NULL DEFAULT 0, "
+                    + "PRIMARY KEY (`UserID`) , UNIQUE (`UUID`) "
+                    + ')');
+            stmt.close();
         } catch (SQLException ex) {
             plugin.getLogger().error("Error creating database table", ex);
-        } finally {
-            closeQuietly(conn);
         }
     }
 
@@ -130,126 +99,78 @@ public class DatabaseManager {
 
         int startIndex = (page - 1) * 10;
 
-        Connection conn = null;
-        try {
-            conn = getConnection();
-
-            Statement statement = conn.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + STATS_TABLE
-                    + " ORDER BY PlayerKills DESC"
-                    + " LIMIT " + startIndex + ", 10");
-
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet resultSet = stmt.executeQuery("SELECT * FROM " + STATS_TABLE
+                     + " ORDER BY PlayerKills DESC"
+                     + " LIMIT " + startIndex + ", 10")) {
             while (resultSet.next()) {
                 result.add(new PlayerStats(resultSet));
             }
         } catch (SQLException sqlEx) {
             plugin.getLogger().error("Error loading stats", sqlEx);
-        } finally {
-            closeQuietly(conn);
         }
 
         return result;
     }
 
-    public PlayerStats loadPlayer(String playerName) {
-        Connection conn = null;
-        try {
-            conn = getConnection();
-
-            PreparedStatement statement = conn.prepareStatement("SELECT * FROM " + STATS_TABLE + " WHERE Username=?");
-            statement.setString(1, playerName);
-
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.first()) {
-                return new PlayerStats(resultSet);
-            }
-        } catch (SQLException sqlEx) {
-            plugin.getLogger().error("Error loading stats", sqlEx);
-        } finally {
-            closeQuietly(conn);
-        }
-
-        return null;
-    }
-
     public PlayerStats loadPlayer(UUID playerUUID) {
-        Connection conn = null;
-        try {
-            conn = getConnection();
-
-            PreparedStatement statement = conn.prepareStatement("SELECT * FROM " + STATS_TABLE + " WHERE UUID=?");
-
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM " + STATS_TABLE + " WHERE UUID=?")) {
             byte[] mostBytes = Longs.toByteArray(playerUUID.getMostSignificantBits());
             byte[] leastBytes = Longs.toByteArray(playerUUID.getLeastSignificantBits());
 
-            statement.setObject(1, Bytes.concat(mostBytes, leastBytes));
+            stmt.setObject(1, Bytes.concat(mostBytes, leastBytes));
 
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.first()) {
-                return new PlayerStats(resultSet);
+            try (ResultSet resultSet = stmt.executeQuery();) {
+                if (resultSet.first()) {
+                    return new PlayerStats(resultSet);
+                }
             }
         } catch (SQLException sqlEx) {
             plugin.getLogger().error("Error loading stats", sqlEx);
-        } finally {
-            closeQuietly(conn);
         }
 
         return null;
     }
 
     public void savePlayer(PlayerStats playerStats) {
-        Connection conn = null;
-        try {
-            conn = getConnection();
-            PreparedStatement statement = conn.prepareStatement("UPDATE " + STATS_TABLE
-                    + " SET Username=?, PlayerKills=?, MobKills=?, Deaths=?"
-                    + " WHERE UUID=?");
-
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("UPDATE " + STATS_TABLE
+                     + " SET Username=?, PlayerKills=?, MobKills=?, Deaths=?"
+                     + " WHERE UUID=?")) {
             //username is now changeable by Mojang - so keep it up to date
-            statement.setString(1, playerStats.getPlayername());
+            stmt.setString(1, playerStats.getPlayername());
 
-            statement.setInt(2, playerStats.getPlayerKills());
-            statement.setInt(3, playerStats.getMobKills());
-            statement.setInt(4, playerStats.getDeaths());
+            stmt.setInt(2, playerStats.getPlayerKills());
+            stmt.setInt(3, playerStats.getMobKills());
+            stmt.setInt(4, playerStats.getDeaths());
 
             UUID uuid = playerStats.getUuid();
 
             byte[] mostBytes = Longs.toByteArray(uuid.getMostSignificantBits());
             byte[] leastBytes = Longs.toByteArray(uuid.getLeastSignificantBits());
 
-            statement.setObject(5, Bytes.concat(mostBytes, leastBytes));
+            stmt.setObject(5, Bytes.concat(mostBytes, leastBytes));
 
-            int affectedRows = statement.executeUpdate();
+            int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
-                statement = conn.prepareStatement("INSERT INTO " + STATS_TABLE
+                try (PreparedStatement stmt2 = conn.prepareStatement("INSERT INTO " + STATS_TABLE
                         + " (UUID, Username, PlayerKills, MobKills, Deaths)"
-                        + " VALUES(?, ?, ?, ?, ?)");
+                        + " VALUES(?, ?, ?, ?, ?)")) {
+                    stmt2.setObject(1, Bytes.concat(mostBytes, leastBytes));
 
-                statement.setObject(1, Bytes.concat(mostBytes, leastBytes));
+                    //username is now changeable by Mojang - so keep it up to date
+                    stmt2.setString(2, playerStats.getPlayername());
 
-                //username is now changeable by Mojang - so keep it up to date
-                statement.setString(2, playerStats.getPlayername());
-
-                statement.setInt(3, playerStats.getPlayerKills());
-                statement.setInt(4, playerStats.getMobKills());
-                statement.setInt(5, playerStats.getDeaths());
-                statement.execute();
+                    stmt2.setInt(3, playerStats.getPlayerKills());
+                    stmt2.setInt(4, playerStats.getMobKills());
+                    stmt2.setInt(5, playerStats.getDeaths());
+                    stmt2.execute();
+                }
             }
         } catch (SQLException ex) {
             plugin.getLogger().error("Error saving player stats", ex);
-        } finally {
-            closeQuietly(conn);
-        }
-    }
-
-    private void closeQuietly(Connection conn) {
-        if (conn != null) {
-            try {
-                //this closes automatically the statement and resultset
-                conn.close();
-            } catch (SQLException ex) {
-                //ingore
-            }
         }
     }
 }

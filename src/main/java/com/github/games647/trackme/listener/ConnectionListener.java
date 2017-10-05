@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
+import org.spongepowered.api.scheduler.Task;
 
 public class ConnectionListener {
 
@@ -23,11 +24,10 @@ public class ConnectionListener {
         Player player = joinEvent.getTargetEntity();
         UUID uniqueId = player.getUniqueId();
 
-        plugin.getGame().getScheduler().createTaskBuilder()
+        Task.builder()
                 .async()
                 .execute(new StatsLoadTask(plugin, uniqueId, player.getName()))
                 .submit(plugin);
-
     }
 
     @Listener
@@ -37,7 +37,7 @@ public class ConnectionListener {
 
         PlayerStats removedStats = plugin.getCache().remove(uniqueId);
         if (removedStats != null) {
-            plugin.getGame().getScheduler().createTaskBuilder()
+            Task.builder()
                     .async()
                     .execute(() -> plugin.getDatabaseManager().savePlayer(removedStats))
                     .submit(plugin);

@@ -18,7 +18,7 @@ A simple Sponge plugin which tracks pvp/pve kills and deaths.
 ## Screenshots
 
 /trackme
-![user stats scoreboard](http://i.imgur.com/qdSM2Ok.png)
+![user stats scoreboard](https://i.imgur.com/qdSM2Ok.png)
 
 /top
-![top kills scoreboard](http://i.imgur.com/Dlc1S5F.png)
+![top kills scoreboard](https://i.imgur.com/Dlc1S5F.png)

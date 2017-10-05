@@ -3,15 +3,18 @@ package com.github.games647.trackme.commands;
 import com.github.games647.trackme.PlayerStats;
 import com.github.games647.trackme.TrackMe;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.scoreboard.Scoreboard;
 import org.spongepowered.api.scoreboard.critieria.Criteria;
 import org.spongepowered.api.scoreboard.displayslot.DisplaySlots;
@@ -57,14 +60,17 @@ public class StatsCommand implements CommandExecutor {
             objective.getOrCreateScore(Text.of(TextColors.YELLOW, "Deaths")).setScore(stats.getDeaths());
 
             Scoreboard tempScoreboard = Scoreboard.builder()
-                    .objectives(Arrays.asList(objective))
+                    .objectives(Collections.singletonList(objective))
                     .build();
             tempScoreboard.updateDisplaySlot(objective, DisplaySlots.SIDEBAR);
             receiver.setScoreboard(tempScoreboard);
 
-            plugin.getGame().getScheduler().createTaskBuilder().delay(5, TimeUnit.SECONDS)
-                    .execute(() -> tempScoreboard.removeObjective(objective))
-                    .submit(plugin);
+            UUID uuid = receiver.getUniqueId();
+            Task.builder().delay(5, TimeUnit.SECONDS)
+                    .execute(() -> Sponge.getServer().getPlayer(uuid).ifPresent(player -> {
+                        Scoreboard scoreboard = player.getScoreboard();
+                        scoreboard.getObjective("playerstats").ifPresent(scoreboard::removeObjective);
+                    })).submit(plugin);
         } else {
             src.sendMessage(Text.of(TextColors.YELLOW, "Kills: " + stats.getPlayerKills()));
             src.sendMessage(Text.of(TextColors.YELLOW, "Mob kills: " + stats.getMobKills()));
