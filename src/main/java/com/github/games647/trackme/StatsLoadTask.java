@@ -16,11 +16,9 @@ public class StatsLoadTask implements Runnable {
 
     @Override
     public void run() {
-        PlayerStats loadedPlayer = plugin.getDatabaseManager().loadPlayer(loadUUID);
-        if (loadedPlayer == null) {
-            loadedPlayer = new PlayerStats(playerName, loadUUID);
-        }
-
-        plugin.getCache().put(loadUUID, loadedPlayer);
+        PlayerStats stats = plugin.getDatabaseManager()
+                .loadPlayer(loadUUID)
+                .orElseGet(() -> new PlayerStats(playerName, loadUUID));
+        plugin.getCache().put(loadUUID, stats);
     }
 }

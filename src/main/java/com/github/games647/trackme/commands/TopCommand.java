@@ -2,6 +2,8 @@ package com.github.games647.trackme.commands;
 
 import com.github.games647.trackme.PlayerStats;
 import com.github.games647.trackme.TrackMe;
+import com.github.games647.trackme.config.Settings;
+import com.google.inject.Inject;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,9 +34,12 @@ import org.spongepowered.api.text.format.TextColors;
 public class TopCommand implements CommandExecutor {
 
     private final TrackMe plugin;
+    private final Settings settings;
 
-    public TopCommand(TrackMe plugin) {
+    @Inject
+    TopCommand(TrackMe plugin, Settings settings) {
         this.plugin = plugin;
+        this.settings = settings;
     }
 
     @Override
@@ -62,7 +67,7 @@ public class TopCommand implements CommandExecutor {
     }
 
     private void display(Player receiver, int page, Collection<PlayerStats> topEntries) {
-        if (plugin.getConfigManager().getConfiguration().isScoreboardDisplay()) {
+        if (settings.getConfig().isScoreboardDisplay()) {
             Objective objective = Objective.builder()
                     .displayName(Text.of(TextColors.GOLD, "Page ", page))
                     .name("topstats")

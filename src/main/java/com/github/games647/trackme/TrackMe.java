@@ -7,8 +7,8 @@ import com.github.games647.trackme.listener.ConnectionListener;
 import com.github.games647.trackme.listener.PlayerListener;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,7 +17,6 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
@@ -29,24 +28,22 @@ import org.spongepowered.api.text.Text;
 public class TrackMe {
 
     private final Logger logger;
-
-    @Inject
-    @DefaultConfig(sharedRoot = false)
-    private Path defaultConfigFile;
-
-    private Settings configuration;
-    private DatabaseManager databaseManager;
+    private final Injector injector;
+    private final Settings configuration;
 
     private final Map<UUID, PlayerStats> playerStats = Maps.newConcurrentMap();
+    
+    private DatabaseManager databaseManager;
 
     @Inject
-    public TrackMe(Logger logger) {
+    public TrackMe(Logger logger, Injector injector, Settings configuration) {
         this.logger = logger;
+        this.injector = injector;
+        this.configuration = configuration;
     }
 
     @Listener
     public void onPreInit(GamePreInitializationEvent preInitEvent) {
-        configuration = new Settings(defaultConfigFile, this);
         configuration.load();
 
         databaseManager = new DatabaseManager(this);
@@ -62,7 +59,7 @@ public class TrackMe {
         //register commands
         CommandManager commandDispatcher = Sponge.getCommandManager();
         CommandSpec statsCommand = CommandSpec.builder()
-                .executor(new StatsCommand(this))
+                .executor(injector.getInstance(StatsCommand.class))
                 .permission(PomData.ARTIFACT_ID + ".command.stats")
                 .arguments(GenericArguments
                         .onlyOne(GenericArguments
@@ -71,7 +68,7 @@ public class TrackMe {
         commandDispatcher.register(this, statsCommand, PomData.ARTIFACT_ID, "stats", "pvpstats");
 
         CommandSpec topCommand = CommandSpec.builder()
-                .executor(new TopCommand(this))
+                .executor(injector.getInstance(TopCommand.class))
                 .permission(PomData.ARTIFACT_ID + ".command.top")
                 .arguments(GenericArguments
                         .optional(GenericArguments

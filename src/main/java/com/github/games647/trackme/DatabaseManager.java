@@ -2,16 +2,16 @@ package com.github.games647.trackme;
 
 import com.github.games647.trackme.config.SQLConfiguration;
 import com.google.common.collect.Lists;
-import com.google.common.primitives.Bytes;
-import com.google.common.primitives.Longs;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.spongepowered.api.Sponge;
@@ -28,7 +28,7 @@ public class DatabaseManager {
     public DatabaseManager(TrackMe plugin) {
         this.plugin = plugin;
 
-        SQLConfiguration sqlConfig = plugin.getConfigManager().getConfiguration().getSqlConfiguration();
+        SQLConfiguration sqlConfig = plugin.getConfigManager().getConfig().getSqlConfiguration();
 
         StringBuilder urlBuilder = new StringBuilder("jdbc:")
                 .append(sqlConfig.getType().name().toLowerCase())
@@ -114,24 +114,21 @@ public class DatabaseManager {
         return result;
     }
 
-    public PlayerStats loadPlayer(UUID playerUUID) {
+    public Optional<PlayerStats> loadPlayer(UUID playerUUID) {
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement("SELECT * FROM " + STATS_TABLE + " WHERE UUID=?")) {
-            byte[] mostBytes = Longs.toByteArray(playerUUID.getMostSignificantBits());
-            byte[] leastBytes = Longs.toByteArray(playerUUID.getLeastSignificantBits());
+            stmt.setObject(1, toArray(playerUUID));
 
-            stmt.setObject(1, Bytes.concat(mostBytes, leastBytes));
-
-            try (ResultSet resultSet = stmt.executeQuery();) {
+            try (ResultSet resultSet = stmt.executeQuery()) {
                 if (resultSet.first()) {
-                    return new PlayerStats(resultSet);
+                    return Optional.of(new PlayerStats(resultSet));
                 }
             }
         } catch (SQLException sqlEx) {
             plugin.getLogger().error("Error loading stats", sqlEx);
         }
 
-        return null;
+        return Optional.empty();
     }
 
     public void savePlayer(PlayerStats playerStats) {
@@ -147,18 +144,14 @@ public class DatabaseManager {
             stmt.setInt(4, playerStats.getDeaths());
 
             UUID uuid = playerStats.getUuid();
-
-            byte[] mostBytes = Longs.toByteArray(uuid.getMostSignificantBits());
-            byte[] leastBytes = Longs.toByteArray(uuid.getLeastSignificantBits());
-
-            stmt.setObject(5, Bytes.concat(mostBytes, leastBytes));
+            stmt.setObject(5, toArray(uuid));
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
                 try (PreparedStatement stmt2 = conn.prepareStatement("INSERT INTO " + STATS_TABLE
                         + " (UUID, Username, PlayerKills, MobKills, Deaths)"
                         + " VALUES(?, ?, ?, ?, ?)")) {
-                    stmt2.setObject(1, Bytes.concat(mostBytes, leastBytes));
+                    stmt2.setObject(1, toArray(uuid));
 
                     //username is now changeable by Mojang - so keep it up to date
                     stmt2.setString(2, playerStats.getPlayername());
@@ -172,5 +165,12 @@ public class DatabaseManager {
         } catch (SQLException ex) {
             plugin.getLogger().error("Error saving player stats", ex);
         }
+    }
+
+    private byte[] toArray(UUID uuid) {
+        return ByteBuffer.wrap(new byte[16])
+                .putLong(uuid.getMostSignificantBits())
+                .putLong(uuid.getLeastSignificantBits())
+                .array();
     }
 }

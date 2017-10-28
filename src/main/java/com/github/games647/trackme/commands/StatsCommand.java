@@ -2,6 +2,8 @@ package com.github.games647.trackme.commands;
 
 import com.github.games647.trackme.PlayerStats;
 import com.github.games647.trackme.TrackMe;
+import com.github.games647.trackme.config.Settings;
+import com.google.inject.Inject;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -26,9 +28,12 @@ import org.spongepowered.api.text.format.TextColors;
 public class StatsCommand implements CommandExecutor {
 
     private final TrackMe plugin;
+    private final Settings settings;
 
-    public StatsCommand(TrackMe plugin) {
+    @Inject
+    StatsCommand(TrackMe plugin, Settings settings) {
         this.plugin = plugin;
+        this.settings = settings;
     }
 
     @Override
@@ -45,7 +50,7 @@ public class StatsCommand implements CommandExecutor {
     }
 
     private void display(CommandSource src, PlayerStats stats) {
-        if (src instanceof Player && plugin.getConfigManager().getConfiguration().isScoreboardDisplay()) {
+        if (src instanceof Player && settings.getConfig().isScoreboardDisplay()) {
             Player receiver = (Player) src;
 
             Objective objective = Objective.builder()

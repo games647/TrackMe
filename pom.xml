@@ -4,7 +4,7 @@
 
     <groupId>com.github.games647</groupId>
     <artifactId>trackme</artifactId>
-    <inceptionYear>2015</inceptionYear>
+
     <packaging>jar</packaging>
 
     <name>TrackMe</name>

@@ -1,12 +1,9 @@
 package com.github.games647.trackme;
 
-import com.google.common.primitives.Longs;
-
+import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 public class PlayerStats {
 
@@ -23,15 +20,9 @@ public class PlayerStats {
     }
 
     public PlayerStats(ResultSet resultSet) throws SQLException {
-        byte[] uuidBytes = resultSet.getBytes(2);
+        ByteBuffer uuidBytes = ByteBuffer.wrap(resultSet.getBytes(2));
 
-        byte[] mostBits = ArrayUtils.subarray(uuidBytes, 0, 8);
-        byte[] leastBits = ArrayUtils.subarray(uuidBytes, 8, 16);
-
-        long mostByte = Longs.fromByteArray(mostBits);
-        long leastByte = Longs.fromByteArray(leastBits);
-
-        this.uuid = new UUID(mostByte, leastByte);
+        this.uuid = new UUID(uuidBytes.getLong(), uuidBytes.getLong());
         this.playername = resultSet.getString(3);
         this.playerKills = resultSet.getInt(4);
         this.mobKills = resultSet.getInt(5);
